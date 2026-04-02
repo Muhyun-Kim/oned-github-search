@@ -2,9 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useActionState, useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { GithubRepo, searchGithubRepos } from "@/services/github";
+import Link from "next/link";
 
 export default function SearchMain() {
   const [query, setQuery] = useState("");
@@ -34,18 +35,20 @@ export default function SearchMain() {
           <div>Loading...</div>
         ) : (
           repos.map((item) => (
-            <Card key={item.id} className="w-full flex-row items-center">
-              <div className="pl-4">
-                <img
-                  src={item.avatarUrl}
-                  alt={item.fullName}
-                  className="w-16 h-16 rounded-full"
-                />
-              </div>
-              <CardContent>
-                <CardTitle>{item.fullName}</CardTitle>
-              </CardContent>
-            </Card>
+            <Link href={`/search/${item.id}`} key={item.id} className="w-full">
+              <Card className="w-full flex-row items-center">
+                <div className="pl-4">
+                  <img
+                    src={item.avatarUrl}
+                    alt={item.fullName}
+                    className="w-16 h-16 rounded-full"
+                  />
+                </div>
+                <CardContent>
+                  <CardTitle>{item.fullName}</CardTitle>
+                </CardContent>
+              </Card>
+            </Link>
           ))
         )}
       </div>
