@@ -1,55 +1,49 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { GithubRepo, searchGithubRepos } from "@/services/github";
+import { searchGithubRepos } from "@/services/github";
 import Link from "next/link";
+import SearchForm from "./(component)/search-form";
+import PageNav from "./(component)/page-nav";
 
-export default function SearchMain() {
-  const [query, setQuery] = useState("");
-  const [repos, setRepos] = useState<GithubRepo[]>([]);
-  const [isPending, setIsPending] = useState(false);
-  const handleSearch = async () => {
-    setIsPending(true);
-    const repos = await searchGithubRepos(query);
-    setRepos(repos);
-    setIsPending(false);
-  };
+export default async function SearchMain({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}) {
+  const PER_PAGE = 30;
+  const MAX_PAGE = Math.floor(1000 / PER_PAGE);
+
+  const { q, page: pageParam } = await searchParams;
+  const query = q ?? "";
+  const page = Math.max(1, Number(pageParam) || 1);
+  const result = query
+    ? await searchGithubRepos({ query, page, perPage: PER_PAGE })
+    : null;
+  const totalPages = result
+    ? Math.min(MAX_PAGE, Math.ceil(result.totalCount / PER_PAGE))
+    : 0;
+
   return (
     <div className="flex flex-col items-center h-screen gap-8">
-      <form className="w-1/2 flex items-center gap-2">
-        <Input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="リポジトリを入力してください。"
-        />
-        <Button type="button" disabled={isPending} onClick={handleSearch}>
-          検索
-        </Button>
-      </form>
+      <SearchForm initialQuery={query} />
       <div className="flex flex-col flex-wrap gap-4 w-1/2">
-        {isPending ? (
-          <div>Loading...</div>
-        ) : (
-          repos.map((item) => (
-            <Link href={`/search/${item.id}`} key={item.id} className="w-full">
-              <Card className="w-full flex-row items-center">
-                <div className="pl-4">
-                  <img
-                    src={item.avatarUrl}
-                    alt={item.fullName}
-                    className="w-16 h-16 rounded-full"
-                  />
-                </div>
-                <CardContent>
-                  <CardTitle>{item.fullName}</CardTitle>
-                </CardContent>
-              </Card>
-            </Link>
-          ))
+        {result?.items.map((item) => (
+          <Link href={`/search/${item.id}`} key={item.id} className="w-full">
+            <Card className="w-full flex-row items-center">
+              <div className="pl-4">
+                <img
+                  src={item.avatarUrl}
+                  alt={item.fullName}
+                  className="w-16 h-16 rounded-full"
+                />
+              </div>
+              <CardContent>
+                <CardTitle>{item.fullName}</CardTitle>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+        {result && totalPages > 1 && (
+          <PageNav page={page} query={query} totalPages={totalPages} />
         )}
       </div>
     </div>

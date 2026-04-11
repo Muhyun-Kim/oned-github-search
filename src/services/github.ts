@@ -16,16 +16,33 @@ export interface GithubRepoDetail {
   openIssuesCount: number;
 }
 
-export async function searchGithubRepos(query: string): Promise<GithubRepo[]> {
+export interface SearchResult {
+  items: GithubRepo[];
+  totalCount: number;
+}
+
+export async function searchGithubRepos({
+  query,
+  page,
+  perPage,
+}: {
+  query: string;
+  page: number;
+  perPage: number;
+}): Promise<SearchResult> {
   const response = await fetch(
-    `${GITHUB_API_URL}/search/repositories?q=${query}`,
+    `${GITHUB_API_URL}/search/repositories?q=${query}&page=${page}&per_page=${perPage}`,
   );
   const data = await response.json();
-  return data.items.map((item: any) => ({
-    id: item.id,
-    fullName: item.full_name,
-    avatarUrl: item.owner.avatar_url,
-  }));
+  const result: SearchResult = {
+    items: data.items.map((item: any) => ({
+      id: item.id,
+      fullName: item.full_name,
+      avatarUrl: item.owner.avatar_url,
+    })),
+    totalCount: data.total_count,
+  };
+  return result;
 }
 
 export async function getGithubRepo(id: number): Promise<GithubRepoDetail> {
