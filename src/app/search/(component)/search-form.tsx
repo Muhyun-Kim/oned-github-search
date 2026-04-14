@@ -15,7 +15,6 @@ export default function SearchForm({ initialQuery }: { initialQuery: string }) {
 
   const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
-    //TODO: 空白などのバリデーション追加
     router.push(`/search?q=${encodeURIComponent(query.trim())}&page=1`);
   };
 
